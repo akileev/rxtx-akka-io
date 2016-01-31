@@ -1,25 +1,22 @@
 package rxtxio
 
 import akka.actor._
-import gnu.io._
-import Serial._
 import akka.util.ByteStringBuilder
+import jssc.{SerialPort, SerialPortEvent, SerialPortEventListener}
+import rxtxio.Serial._
 
 private[rxtxio] class SerialOperator(port: SerialPort, commander: ActorRef) extends Actor {
-  private object DataAvailable
+  private case class DataAvailable(count: Int)
 
-  context.watch(commander) //death pact
-
-  val out = port.getOutputStream
-  val in = port.getInputStream
+  context.watch(commander)
 
   override def preStart = {
-    port.notifyOnDataAvailable(true)
-    port.enableReceiveTimeout(1)
     val toNotify = self
     port.addEventListener(new SerialPortEventListener() {
       override def serialEvent(event: SerialPortEvent) {
-        toNotify ! DataAvailable
+        event.getEventType match {
+          case SerialPortEvent.RXCHAR => toNotify ! DataAvailable(event.getEventValue)
+        }
       }
     })
     self ! DataAvailable //just in case
@@ -27,35 +24,29 @@ private[rxtxio] class SerialOperator(port: SerialPort, commander: ActorRef) exte
 
   override def postStop = {
     commander ! Closed
-    port.close
+    port.closePort()
   }
 
   override def receive = {
     case Close =>
-      port.close
+      port.closePort()
       if (sender != commander) sender ! Closed
       context.stop(self)
 
     case Write(data, ack) =>
-      out.write(data.toArray)
-      out.flush
       if (ack != NoAck) sender ! ack
 
-    case DataAvailable =>
-      val data = read()
+    case DataAvailable(count) =>
+      val data = read(count)
       if (data.nonEmpty) commander ! Received(data)
   }
 
-  private def read() = {
+  private def read(count: Int) = {
     val bsb = new ByteStringBuilder
-    def doRead() {
-      val data = in.read()
-      if (data != -1) {
-        bsb += data.toByte
-        doRead
-      }
-    }
-    doRead()
+
+    val data = port.readBytes(count)
+
+    bsb ++= data
     bsb.result
   }
 }

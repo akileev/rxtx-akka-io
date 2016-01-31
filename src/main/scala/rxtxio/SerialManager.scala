@@ -1,11 +1,10 @@
 package rxtxio
 
-import scala.collection.JavaConversions._
 import akka.actor._
-import Serial._
-import gnu.io._
-import SerialPort._
-import scala.util.{ Try, Success, Failure }
+import jssc.{SerialPort, SerialPortList}
+import rxtxio.Serial._
+
+import scala.util.{Failure, Success, Try}
 
 /**
  *  Opens the serial port and then starts a SerialOperator to handle the communication over
@@ -14,43 +13,39 @@ import scala.util.{ Try, Success, Failure }
 private[rxtxio] class SerialManager extends Actor {
   override def receive = {
     case ListPorts =>
-      val ids = CommPortIdentifier.getPortIdentifiers.asInstanceOf[java.util.Enumeration[CommPortIdentifier]]
-      val ports = ids.map(_.getName).toVector
+      val ports = SerialPortList.getPortNames().toVector
       sender ! Ports(ports)
 
     case c @ Open(port, baudRate, dataBits, parity, stopBits, flowControl) =>
       Try {
-        val id = CommPortIdentifier.getPortIdentifier(port)
+        val serialPort = new SerialPort(port)
         val data = dataBits match {
-          case DataBits5 => DATABITS_5
-          case DataBits6 => DATABITS_6
-          case DataBits7 => DATABITS_7
-          case DataBits8 => DATABITS_8
+          case DataBits5 => SerialPort.DATABITS_5
+          case DataBits6 => SerialPort.DATABITS_6
+          case DataBits7 => SerialPort.DATABITS_7
+          case DataBits8 => SerialPort.DATABITS_8
         }
         val stop = stopBits match {
-          case OneStopBit => STOPBITS_1
-          case OneAndHalfStopBits => STOPBITS_1_5
-          case TwoStopBits => STOPBITS_2
+          case OneStopBit => SerialPort.STOPBITS_1
+          case OneAndHalfStopBits => SerialPort.STOPBITS_1_5
+          case TwoStopBits => SerialPort.STOPBITS_2
         }
         val par = parity match {
-          case NoParity => PARITY_NONE
-          case EvenParity => PARITY_EVEN
-          case OddParity => PARITY_ODD
-          case MarkParity => PARITY_MARK
-          case SpaceParity => PARITY_SPACE
+          case NoParity => SerialPort.PARITY_NONE
+          case EvenParity => SerialPort.PARITY_EVEN
+          case OddParity => SerialPort.PARITY_ODD
+          case MarkParity => SerialPort.PARITY_MARK
+          case SpaceParity => SerialPort.PARITY_SPACE
         }
         val fc = flowControl match {
-          case NoFlowControl => FLOWCONTROL_NONE
-          case RtsFlowControl => FLOWCONTROL_RTSCTS_IN | FLOWCONTROL_RTSCTS_OUT
-          case XonXoffFlowControl => FLOWCONTROL_XONXOFF_IN | FLOWCONTROL_XONXOFF_OUT
+          case NoFlowControl => SerialPort.FLOWCONTROL_NONE
+          case RtsFlowControl => SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT
+          case XonXoffFlowControl => SerialPort.FLOWCONTROL_XONXOFF_IN | SerialPort.FLOWCONTROL_XONXOFF_OUT
         }
-        id.open(context.self.toString, 2000) match {
-          case sp: SerialPort =>
-            sp.setSerialPortParams(baudRate, data, stop, par)
-            sp.setFlowControlMode(fc)
-            sp
-          case _ => throw new RuntimeException(s"$port is not a SerialPort.")
-        }
+        serialPort.openPort()
+        serialPort.setParams(baudRate, data, stop, par)
+        serialPort.setFlowControlMode(fc)
+        serialPort
       } match {
         case Success(serialPort) =>
           val operator = context.actorOf(SerialOperator.props(serialPort, sender))

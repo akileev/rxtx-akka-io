@@ -1,10 +1,12 @@
 package rxtxio
 
-import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
+import akka.actor.{Actor, ActorRef, ActorSystem, Props, Stash}
 import akka.io.IO
 import akka.util.ByteString
-import akka.actor.Stash
-import Serial._
+import rxtxio.Serial._
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class Example(port: String) extends Actor with Stash {
   import context.system
@@ -15,7 +17,8 @@ class Example(port: String) extends Actor with Stash {
 
   override def postStop = {
     println("Stopped")
-    system.shutdown
+    val whenTerminated = system.terminate()
+    Await.result(whenTerminated, Duration.Inf)
   }
 
   override def receive = {
@@ -60,5 +63,6 @@ object Example extends App {
   Thread.sleep(2000)
   actor ! "close"
 
-  system.awaitTermination
+  val whenTerminated = system.terminate()
+  Await.result(whenTerminated, Duration.Inf)
 }

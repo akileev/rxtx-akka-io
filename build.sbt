@@ -1,30 +1,32 @@
+import sbt.Keys._
+
 name := "rxtx-akka-io"
 
 organization := "ch.inventsoft.akka"
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.7"
 
-version := "1.0.4"
+version := "2.0.0-SNAPSHOT"
 
 licenses := Seq("The Apache Software License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-homepage := Some(url("https://github.com/msiegenthaler/rxtx-akka-io"))
+homepage := Some(url("https://github.com/akileev/rxtx-akka-io"))
 
+scalacOptions ++= Seq("-deprecation")
 
 resolvers += "Sonatype OSS Snapshots" at
   "https://oss.sonatype.org/content/repositories/snapshots"
 
+lazy val akkaVersion = "2.4.1"
+lazy val scalaTestVersion = "2.2.6"
+lazy val jsccVersion = "2.8.0"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.4"
-
-libraryDependencies += "com.typesafe.akka" %% "akka-testkit" % "2.3.4" % "test"
-
-libraryDependencies += "org.rxtx" % "rxtx" % "2.1.7"
-
-
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
-
-
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
+  "org.scream3r" % "jssc" % jsccVersion,
+  "org.scalatest" % "scalatest_2.11" % scalaTestVersion % "test"
+)
 
 publishMavenStyle := true
 
@@ -40,10 +42,10 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false}
 
-pomExtra := (
+pomExtra :=
   <scm>
-    <url>git@github.com:msiegenthaler/rxtx-akka-io</url>
-    <connection>scm:git:git@github.com:msiegenthaler/rxtx-akka-io</connection>
+    <url>git@github.com:akileev/rxtx-akka-io</url>
+    <connection>scm:git:git@github.com:akileev/rxtx-akka-io</connection>
   </scm>
   <developers>
     <developer>
@@ -51,4 +53,9 @@ pomExtra := (
       <name>Mario Siegenthaler</name>
       <url>https://github.com/msiegenthaler</url>
     </developer>
-  </developers>)
+    <developer>
+      <id>akileev</id>
+      <name>Artem Kileev</name>
+      <url>https://github.com/akileev</url>
+    </developer>
+  </developers>

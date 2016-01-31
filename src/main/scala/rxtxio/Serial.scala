@@ -1,7 +1,6 @@
 package rxtxio
 
 import akka.actor._
-import akka.io._
 import akka.util.ByteString
 
 /**
