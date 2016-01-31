@@ -4,7 +4,7 @@ Akka IO library in scala for serial ports based on jSCC.
 
 ## Usage
 
-    libraryDependencies += "ru.kileev.akka" %% "rxtx-akka-io" % "1.0.4"
+    libraryDependencies += "com.github.akileev" %% "rxtx-akka-io" % "1.0.4"
 
 To connect use (in an actor):
 

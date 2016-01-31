@@ -2,7 +2,7 @@ import sbt.Keys._
 
 name := "rxtx-akka-io"
 
-organization := "ru.kileev.akka"
+organization := "com.github.akileev"
 
 scalaVersion := "2.11.7"
 
