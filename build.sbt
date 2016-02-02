@@ -49,11 +49,6 @@ pomExtra :=
   </scm>
   <developers>
     <developer>
-      <id>msiegenthaler</id>
-      <name>Mario Siegenthaler</name>
-      <url>https://github.com/msiegenthaler</url>
-    </developer>
-    <developer>
       <id>akileev</id>
       <name>Artem Kileev</name>
       <url>https://github.com/akileev</url>
