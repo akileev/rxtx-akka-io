@@ -4,8 +4,8 @@ import akka.actor._
 import akka.util.ByteString
 
 /**
- * Serial port extension based on the rxtx library for the akka IO layer.
- */
+  * Serial port extension based on the rxtx library for the akka IO layer.
+  */
 object Serial extends ExtensionId[SerialExt] with ExtensionIdProvider {
   override def lookup = Serial
   override def createExtension(system: ExtendedActorSystem): SerialExt = new SerialExt(system)
@@ -52,18 +52,20 @@ object Serial extends ExtensionId[SerialExt] with ExtensionIdProvider {
   object XonXoffFlowControl extends FlowControl
 
   /** Open a serial port. Response: Opened | CommandFailed */
-  case class Open(port: String, baudRate: Int,
-    dataBits: DataBits = DataBits8,
-    parity: Parity = NoParity,
-    stopBits: StopBits = OneStopBit,
-    flowControl: FlowControl = NoFlowControl) extends ManagerCommand
+  case class Open(handler: ActorRef,
+                  port: String,
+                  baudRate: Int,
+                  dataBits: DataBits = DataBits8,
+                  parity: Parity = NoParity,
+                  stopBits: StopBits = OneStopBit,
+                  flowControl: FlowControl = NoFlowControl) extends ManagerCommand
 
   /**
-   *  Serial port is now open.
-   *  Communication is handled by the operator actor.
-   *  The sender of the Open message will now receive incoming communication from the
-   *  serial port.
-   */
+    *  Serial port is now open.
+    *  Communication is handled by the operator actor.
+    *  The sender of the Open message will now receive incoming communication from the
+    *  serial port.
+    */
   case class Opened(operator: ActorRef, port: String) extends Event
 
   /** List all available serial ports. Response: Ports | CommandFailed */

@@ -16,10 +16,10 @@ private[rxtxio] class SerialOperator(port: SerialPort, commander: ActorRef) exte
       override def serialEvent(event: SerialPortEvent) {
         event.getEventType match {
           case SerialPortEvent.RXCHAR => toNotify ! DataAvailable(event.getEventValue)
+          case _ =>
         }
       }
     })
-    self ! DataAvailable //just in case
   }
 
   override def postStop = {

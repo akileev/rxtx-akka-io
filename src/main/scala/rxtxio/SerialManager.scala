@@ -7,16 +7,16 @@ import rxtxio.Serial._
 import scala.util.{Failure, Success, Try}
 
 /**
- *  Opens the serial port and then starts a SerialOperator to handle the communication over
- *  that port.
- */
+  *  Opens the serial port and then starts a SerialOperator to handle the communication over
+  *  that port.
+  */
 private[rxtxio] class SerialManager extends Actor {
   override def receive = {
     case ListPorts =>
       val ports = SerialPortList.getPortNames().toVector
       sender ! Ports(ports)
 
-    case c @ Open(port, baudRate, dataBits, parity, stopBits, flowControl) =>
+    case c @ Open(handler, port, baudRate, dataBits, parity, stopBits, flowControl) =>
       Try {
         val serialPort = new SerialPort(port)
         val data = dataBits match {
@@ -48,10 +48,10 @@ private[rxtxio] class SerialManager extends Actor {
         serialPort
       } match {
         case Success(serialPort) =>
-          val operator = context.actorOf(SerialOperator.props(serialPort, sender))
-          sender ! Opened(operator, port)
+          val operator = context.actorOf(SerialOperator.props(serialPort, handler))
+          handler ! Opened(operator, port)
         case Failure(error) =>
-          sender ! CommandFailed(c, error)
+          handler ! CommandFailed(c, error)
       }
   }
 }
